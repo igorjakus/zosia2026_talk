@@ -10,7 +10,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 DEVICE = "cuda"
 BATCH_SIZE = 512
-EPOCHS = 3
+EPOCHS = 2
 LEARNING_RATE = 0.001
 
 torch.set_float32_matmul_precision("high")
@@ -33,15 +33,13 @@ def move_to_vram(dataset):
 
 train_images, train_labels = move_to_vram(train_raw)
 test_images, test_labels = move_to_vram(test_raw)
-print(f"Dataset cached in VRAM.")
+print("Dataset cached in VRAM")
 
 model = torchvision.models.resnet50(num_classes=10).to(DEVICE)
 model = torch.compile(model)
 
 criterion = nn.CrossEntropyLoss()
-# OPTYMALIZACJA: Fused Optimizer
-# Adam.fused=True łączy aktualizację wielu parametrów w jeden kernel CUDA
-optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, fused=True)
+optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 scaler = torch.amp.GradScaler("cuda")
 
 

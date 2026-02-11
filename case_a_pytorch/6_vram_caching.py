@@ -10,7 +10,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 DEVICE = "cuda"
 BATCH_SIZE = 512
-EPOCHS = 3
+EPOCHS = 2
 LEARNING_RATE = 0.001
 
 torch.set_float32_matmul_precision("high")
@@ -32,9 +32,7 @@ def move_to_vram(dataset):
 
 train_images, train_labels = move_to_vram(train_raw)
 test_images, test_labels = move_to_vram(test_raw)
-print(
-    f"Dataset cached in VRAM. Memory used for data: {train_images.element_size() * train_images.nelement() / 1e9:.2f} GB"
-)
+print("Dataset cached in VRAM")
 
 model = torchvision.models.resnet50(num_classes=10).to(DEVICE)
 model = torch.compile(model)

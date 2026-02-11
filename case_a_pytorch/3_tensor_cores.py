@@ -10,33 +10,30 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 DEVICE = "cuda"
 BATCH_SIZE = 512
-EPOCHS = 3
+EPOCHS = 2
 LEARNING_RATE = 0.001
 
 # OPTYMALIZACJA: Tensor Cores (TF32)
-torch.set_float32_matmul_precision('high')
+torch.set_float32_matmul_precision("high")
 
-transform = transforms.Compose([
-    transforms.Resize(64),
-    transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-])
+transform = transforms.Compose(
+    [transforms.Resize(64), transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+)
 
 trainset = torchvision.datasets.CIFAR10(root="./data", train=True, download=True, transform=transform)
 trainloader = torch.utils.data.DataLoader(
-    trainset, batch_size=BATCH_SIZE, shuffle=True, 
-    num_workers=4, pin_memory=True, persistent_workers=True
+    trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4, pin_memory=True, persistent_workers=True
 )
 
 testset = torchvision.datasets.CIFAR10(root="./data", train=False, download=True, transform=transform)
 testloader = torch.utils.data.DataLoader(
-    testset, batch_size=BATCH_SIZE, shuffle=False, 
-    num_workers=4, pin_memory=True, persistent_workers=True
+    testset, batch_size=BATCH_SIZE, shuffle=False, num_workers=4, pin_memory=True, persistent_workers=True
 )
 
 model = torchvision.models.resnet50(num_classes=10).to(DEVICE)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+
 
 def train_one_epoch(epoch):
     model.train()
@@ -50,6 +47,7 @@ def train_one_epoch(epoch):
         optimizer.step()
     print(f"Epoch {epoch} Training Time: {time.time() - start_time:.2f}s")
 
+
 def validate():
     model.eval()
     start_time = time.time()
@@ -58,6 +56,7 @@ def validate():
             inputs, labels = inputs.to(DEVICE, non_blocking=True), labels.to(DEVICE, non_blocking=True)
             outputs = model(inputs)
     print(f"Validation Time: {time.time() - start_time:.2f}s")
+
 
 if __name__ == "__main__":
     t0 = time.time()

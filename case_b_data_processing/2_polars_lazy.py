@@ -1,6 +1,5 @@
 import polars as pl
 import time
-import os
 
 CSV_FILE = "data/yellow_tripdata_2023-01.csv"
 
@@ -20,8 +19,7 @@ except FileNotFoundError:
 # Polars zauważy, że używamy tylko 'tpep_pickup_datetime' i 'tip_amount',
 # więc nie wczyta reszty kolumn (Projection Pushdown).
 q = (
-    q
-    .with_columns(pl.col("tpep_pickup_datetime").dt.hour().alias("hour"))
+    q.with_columns(pl.col("tpep_pickup_datetime").dt.hour().alias("hour"))
     .group_by("hour")
     .agg(pl.col("tip_amount").mean())
     .sort("hour")

@@ -1,6 +1,5 @@
 import polars as pl
 import time
-import os
 
 CSV_FILE = "data/yellow_tripdata_2023-01.csv"
 
@@ -27,14 +26,11 @@ print(f"Read Time: {read_time - start_time:.2f}s")
 if df["tpep_pickup_datetime"].dtype == pl.String:
     print("Parsing dates (str -> datetime)...")
     # strptime jest bardzo szybkie w Polars
-    df = df.with_columns(
-        pl.col("tpep_pickup_datetime").str.strptime(pl.Datetime)
-    )
+    df = df.with_columns(pl.col("tpep_pickup_datetime").str.strptime(pl.Datetime))
 
 print("Grouping & Aggregating...")
 result = (
-    df
-    .with_columns(pl.col("tpep_pickup_datetime").dt.hour().alias("hour"))
+    df.with_columns(pl.col("tpep_pickup_datetime").dt.hour().alias("hour"))
     .group_by("hour")
     .agg(pl.col("tip_amount").mean())
     .sort("hour")

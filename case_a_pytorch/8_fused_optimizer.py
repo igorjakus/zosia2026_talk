@@ -14,37 +14,49 @@ EPOCHS = 2
 LEARNING_RATE = 0.001
 
 torch.set_float32_matmul_precision("high")
+torch.backends.cudnn.benchmark = True
 
 transform = transforms.Compose(
     [transforms.Resize(64), transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
 )
 
-trainset = torchvision.datasets.CIFAR10(root="./data", train=True, download=True, transform=transform)
-trainloader = torch.utils.data.DataLoader(
-    trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4, pin_memory=True, persistent_workers=True
-)
+print("Loading dataset to VRAM...")
+train_raw = torchvision.datasets.CIFAR10(root="./data", train=True, download=True, transform=transform)
+test_raw = torchvision.datasets.CIFAR10(root="./data", train=False, download=True, transform=transform)
 
-testset = torchvision.datasets.CIFAR10(root="./data", train=False, download=True, transform=transform)
-testloader = torch.utils.data.DataLoader(
-    testset, batch_size=BATCH_SIZE, shuffle=False, num_workers=4, pin_memory=True, persistent_workers=True
-)
+
+def move_to_vram(dataset):
+    loader = torch.utils.data.DataLoader(dataset, batch_size=len(dataset), shuffle=False)
+    images, labels = next(iter(loader))
+    return images.to(DEVICE), labels.to(DEVICE)
+
+
+train_images, train_labels = move_to_vram(train_raw)
+test_images, test_labels = move_to_vram(test_raw)
+print("Dataset cached in VRAM.")
 
 model = torchvision.models.resnet50(num_classes=10).to(DEVICE)
 model = torch.compile(model)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-
+# OPTYMALIZACJA: Fused Optimizer
+# Adam.fused=True łączy aktualizację wielu parametrów w jeden kernel CUDA
+optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, fused=True)
 scaler = torch.amp.GradScaler("cuda")
 
 
 def train_one_epoch(epoch, is_warmup=False):
     model.train()
     start_time = time.time()
-    for inputs, labels in trainloader:
-        inputs, labels = inputs.to(DEVICE, non_blocking=True), labels.to(DEVICE, non_blocking=True)
-        optimizer.zero_grad()
 
+    indices = torch.randperm(len(train_images), device=DEVICE)
+
+    for i in range(0, len(train_images), BATCH_SIZE):
+        batch_idx = indices[i : i + BATCH_SIZE]
+        inputs = train_images[batch_idx]
+        labels = train_labels[batch_idx]
+
+        optimizer.zero_grad()
         with torch.amp.autocast("cuda"):
             outputs = model(inputs)
             loss = criterion(outputs, labels)
@@ -62,8 +74,9 @@ def validate():
     start_time = time.time()
     with torch.inference_mode():
         with torch.amp.autocast("cuda"):
-            for inputs, labels in testloader:
-                inputs, labels = inputs.to(DEVICE, non_blocking=True), labels.to(DEVICE, non_blocking=True)
+            for i in range(0, len(test_images), BATCH_SIZE):
+                inputs = test_images[i : i + BATCH_SIZE]
+                labels = test_labels[i : i + BATCH_SIZE]
                 outputs = model(inputs)
     print(f"Validation Time: {time.time() - start_time:.2f}s")
 

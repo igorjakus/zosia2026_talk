@@ -1,6 +1,5 @@
 import pandas as pd
 import time
-import os
 
 CSV_FILE = "data/yellow_tripdata_2023-01.csv"
 
@@ -24,15 +23,15 @@ print(f"Read Time: {read_time - start_time:.2f}s")
 # 2. Przetwarzanie
 # Konwersja kolumny z datą (bardzo kosztowna w Pandas)
 print("Parsing dates...")
-df['pickup_datetime'] = pd.to_datetime(df['tpep_pickup_datetime'])
+df["pickup_datetime"] = pd.to_datetime(df["tpep_pickup_datetime"])
 
 # Wyciągnięcie godziny
 print("Extracting hour...")
-df['hour'] = df['pickup_datetime'].dt.hour
+df["hour"] = df["pickup_datetime"].dt.hour
 
 # Grupowanie i agregacja
 print("Grouping & Aggregating...")
-result = df.groupby('hour')['tip_amount'].mean()
+result = df.groupby("hour")["tip_amount"].mean()
 
 # Sortowanie
 result = result.sort_index()

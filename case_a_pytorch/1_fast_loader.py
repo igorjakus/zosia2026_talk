@@ -10,7 +10,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 DEVICE = "cuda"
 BATCH_SIZE = 512
-EPOCHS = 3
+EPOCHS = 2
 LEARNING_RATE = 0.001
 
 transform = transforms.Compose([

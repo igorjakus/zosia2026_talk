@@ -13,7 +13,8 @@ BENCHMARKS = [
     {"case": "A", "step": "4_compile", "path": "case_a_pytorch/4_compile.py"},
     {"case": "A", "step": "5_amp", "path": "case_a_pytorch/5_amp.py"},
     {"case": "A", "step": "6_vram", "path": "case_a_pytorch/6_vram_caching.py"},
-    {"case": "A", "step": "7_fused", "path": "case_a_pytorch/7_fused_optimizer.py"},
+    {"case": "A", "step": "7_benchmark", "path": "case_a_pytorch/7_cudnn_benchmark.py"},
+    {"case": "A", "step": "8_fused", "path": "case_a_pytorch/8_fused_optimizer.py"},
     
     # Case B
     {"case": "B", "step": "0_pandas", "path": "case_b_data_processing/0_pandas.py"},
@@ -24,7 +25,6 @@ BENCHMARKS = [
     {"case": "C", "step": "0_pure_python", "path": "case_c_evolution/0_pure_python.py"},
     {"case": "C", "step": "1_numpy", "path": "case_c_evolution/1_numpy_vectorized.py"},
     {"case": "C", "step": "2_argpartition", "path": "case_c_evolution/2_numpy_argpartition.py"},
-    {"case": "C", "step": "3_numba", "path": "case_c_evolution/3_numba_jit.py"},
 ]
 
 RESULTS_FILE = "results.jsonl"
