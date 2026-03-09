@@ -1,4 +1,5 @@
 # Zosia 2026 Talk: High-Performance Python
+Alternative title: Accelerating AI training with PyTorch
 
 ## Quickstart
 
